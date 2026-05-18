@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "outputDirectory": "ticketing-app/src",
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/submit",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/track",
+      "dest": "/ticket-status.html"
+    },
+    {
+      "src": "/admin",
+      "dest": "/admin.html"
+    }
+  ]
+}
