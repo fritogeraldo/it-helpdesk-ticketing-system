@@ -1,0 +1,60 @@
+{
+  "type": "object",
+  "properties": {
+    "ticket_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "IT",
+        "HR",
+        "Billing",
+        "General"
+      ]
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "In Progress",
+        "Resolved",
+        "Closed"
+      ]
+    },
+    "assigned_to": {
+      "type": "string"
+    },
+    "internal_notes": {
+      "type": "string"
+    },
+    "token": {
+      "type": "string"
+    },
+    "attachment_url": {
+      "type": "string"
+    }
+  },
+  "required": [],
+  "name": "Ticket"
+}
