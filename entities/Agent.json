@@ -1,0 +1,29 @@
+{
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "Admin",
+        "Agent"
+      ]
+    },
+    "is_active": {
+      "type": "boolean"
+    },
+    "ticket_count": {
+      "type": "number"
+    },
+    "password_hash": {
+      "type": "string"
+    }
+  },
+  "required": [],
+  "name": "Agent"
+}
