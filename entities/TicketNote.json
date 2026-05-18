@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "properties": {
+    "ticket_id": {
+      "type": "string"
+    },
+    "agent_name": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    },
+    "is_internal": {
+      "type": "boolean"
+    }
+  },
+  "required": [],
+  "name": "TicketNote"
+}
