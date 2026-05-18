@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IT Helpdesk — Track Your Ticket</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+
+  <!-- Loading -->
+  <div id="loadingView" class="text-center">
+    <svg class="w-10 h-10 text-blue-500 animate-spin mx-auto" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+    </svg>
+    <p class="text-gray-500 mt-3">Loading ticket…</p>
+  </div>
+
+  <!-- Not Found -->
+  <div id="notFoundView" class="hidden text-center max-w-md">
+    <div class="bg-white rounded-2xl shadow-xl p-10">
+      <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+        <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </div>
+      <h2 class="text-xl font-bold text-gray-900 mb-2">Ticket Not Found</h2>
+      <p class="text-gray-500 text-sm mb-6">The ticket link may be invalid or expired. Please check the email we sent you.</p>
+      <a href="index.html" class="text-blue-600 hover:underline text-sm">Submit a new ticket</a>
+    </div>
+  </div>
+
+  <!-- Ticket Details -->
+  <div id="ticketView" class="hidden w-full max-w-2xl">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4 shadow-lg">
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold text-gray-900">Ticket Status</h1>
+      <p class="text-gray-500 mt-2">Track your support request below.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+      <!-- Status Banner -->
+      <div id="statusBanner" class="rounded-xl px-5 py-4 mb-6 flex items-center gap-3">
+        <div id="statusDot" class="w-3 h-3 rounded-full flex-shrink-0"></div>
+        <div>
+          <p class="text-xs font-medium uppercase tracking-wide" id="statusLabel">Status</p>
+          <p class="text-lg font-bold" id="statusText"></p>
+        </div>
+      </div>
+
+      <!-- Progress Steps -->
+      <div class="flex items-center mb-8" id="progressBar">
+        <!-- steps injected by JS -->
+      </div>
+
+      <!-- Details -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-gray-50 rounded-xl p-4">
+          <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Ticket ID</p>
+          <p class="font-bold text-gray-900" id="detTicketId"></p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4">
+          <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Priority</p>
+          <p class="font-semibold" id="detPriority"></p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4">
+          <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Category</p>
+          <p class="font-semibold text-gray-700" id="detCategory"></p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4">
+          <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Assigned To</p>
+          <p class="font-semibold text-gray-700" id="detAssigned"></p>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-100 pt-6">
+        <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-2">Subject</p>
+        <p class="font-semibold text-gray-900 mb-4" id="detSubject"></p>
+        <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-2">Description</p>
+        <p class="text-gray-600 text-sm leading-relaxed" id="detDescription"></p>
+      </div>
+
+      <div class="mt-6 text-center">
+        <a href="index.html" class="text-sm text-blue-600 hover:underline">Submit another ticket</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'https://agent-orange-c809ca9b.base44.app/functions';
+    const params = new URLSearchParams(window.location.search);
+    const ticketId = params.get('id');
+    const token = params.get('token');
+
+    const statusConfig = {
+      'Open':        { bg: 'bg-green-50', dot: 'bg-green-500', label: 'text-green-700', step: 0 },
+      'In Progress': { bg: 'bg-yellow-50', dot: 'bg-yellow-500', label: 'text-yellow-700', step: 1 },
+      'Resolved':    { bg: 'bg-blue-50', dot: 'bg-blue-500', label: 'text-blue-700', step: 2 },
+      'Closed':      { bg: 'bg-gray-100', dot: 'bg-gray-400', label: 'text-gray-600', step: 3 },
+    };
+
+    const steps = ['Open', 'In Progress', 'Resolved', 'Closed'];
+
+    function renderProgress(currentStatus) {
+      const currentStep = statusConfig[currentStatus]?.step ?? 0;
+      const bar = document.getElementById('progressBar');
+      bar.innerHTML = steps.map((step, i) => {
+        const active = i <= currentStep;
+        return `
+          <div class="flex-1 flex flex-col items-center">
+            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mb-1
+              ${active ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400'}">
+              ${active ? '✓' : i + 1}
+            </div>
+            <p class="text-xs ${active ? 'text-blue-600 font-semibold' : 'text-gray-400'}">${step}</p>
+          </div>
+          ${i < steps.length - 1 ? `<div class="flex-1 h-0.5 ${active && i < currentStep ? 'bg-blue-600' : 'bg-gray-200'} mb-4"></div>` : ''}
+        `;
+      }).join('');
+    }
+
+    const priorityColors = { Low: 'text-green-600', Medium: 'text-yellow-600', High: 'text-red-600' };
+
+    async function loadTicket() {
+      if (!ticketId || !token) {
+        show('notFoundView'); return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/getTicketStatus`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ticket_id: ticketId, token })
+        });
+        const data = await res.json();
+        if (!res.ok || data.error || !data.ticket) { show('notFoundView'); return; }
+
+        const t = data.ticket;
+        const cfg = statusConfig[t.status] || statusConfig['Open'];
+
+        const banner = document.getElementById('statusBanner');
+        banner.className = `rounded-xl px-5 py-4 mb-6 flex items-center gap-3 ${cfg.bg}`;
+        document.getElementById('statusDot').className = `w-3 h-3 rounded-full flex-shrink-0 ${cfg.dot}`;
+        document.getElementById('statusLabel').className = `text-xs font-medium uppercase tracking-wide ${cfg.label}`;
+        document.getElementById('statusLabel').textContent = 'Current Status';
+        document.getElementById('statusText').className = `text-lg font-bold ${cfg.label}`;
+        document.getElementById('statusText').textContent = t.status;
+
+        renderProgress(t.status);
+
+        document.getElementById('detTicketId').textContent = t.ticket_id;
+        document.getElementById('detPriority').textContent = t.priority;
+        document.getElementById('detPriority').className = `font-semibold ${priorityColors[t.priority] || 'text-gray-700'}`;
+        document.getElementById('detCategory').textContent = t.category;
+        document.getElementById('detAssigned').textContent = t.assigned_to || 'Pending assignment';
+        document.getElementById('detSubject').textContent = t.subject;
+        document.getElementById('detDescription').textContent = t.description;
+
+        show('ticketView');
+      } catch {
+        show('notFoundView');
+      }
+    }
+
+    function show(id) {
+      ['loadingView','notFoundView','ticketView'].forEach(v => {
+        document.getElementById(v).classList.add('hidden');
+      });
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    loadTicket();
+  </script>
+</body>
+</html>
